@@ -149,11 +149,31 @@ class _ChildDataTabState extends State<ChildDataTab> {
                 ),
               ),
             )
-          : _children.isEmpty
+          : _children
+                .isEmpty // KONDISI KETIKA DATA ANAK KOSONG
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // --- TAMBAHAN BARU DIMULAI DI SINI ---
+                  const Icon(
+                    Icons.child_care, // Ikon anak
+                    size: 100, // Ukuran ikon yang lebih besar
+                    color: Colors.lightBlue, // Warna yang lebih cerah
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Data Anak Pengguna Baru', // Keterangan baru
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueAccent,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 15), // Spasi setelah keterangan baru
+
+                  // --- TAMBAHAN BARU BERAKHIR DI SINI ---
                   const Icon(
                     Icons.info_outline,
                     size: 80,

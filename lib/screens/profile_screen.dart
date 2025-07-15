@@ -34,6 +34,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _fetchUserProfile();
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _fetchUserProfile() async {
     setState(() {
       _isLoading = true;
@@ -53,13 +62,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _errorMessage = 'Gagal memuat profil: ${e.toString()}';
       });
       // Jika terjadi error saat fetch (misal token expired), paksa logout
-      await _authService.logout();
+      // Pastikan context masih valid sebelum navigasi
       if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-          (Route<dynamic> route) => false,
-        );
+        await _authService.logout();
+        if (mounted) {
+          // Check mounted again after async operation
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
       }
     } finally {
       setState(() {
@@ -112,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _errorMessage = 'Gagal memperbarui profil:';
           response.errors!.forEach((key, value) {
-            _errorMessage += '\n${key}: ${value.join(', ')}';
+            _errorMessage += '\n$key: ${value.join(', ')}';
           });
         });
       } else {
@@ -132,7 +145,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // --- PERBAIKAN: Tambahkan fungsi logout ---
   Future<void> _logout() async {
     bool? confirmLogout = await showDialog<bool>(
       context: context,
@@ -178,22 +190,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
   }
-  // --- END PERBAIKAN ---
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar:
-          _isEditing // Hide app bar in edit mode if you want
-          ? null
-          : AppBar(
-              title: const Text('Profil Saya'),
-              centerTitle: true,
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
-              automaticallyImplyLeading:
-                  false, // Penting karena ini bagian dari bottom nav bar
-            ),
+      // App Bar dihapus sesuai permintaan
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.blue))
           : SingleChildScrollView(
@@ -201,42 +202,124 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Icon Person di bagian atas
+                  const Icon(
+                    Icons
+                        .person_pin, // Atau Icons.account_circle, Icons.person_outline
+                    size: 100,
+                    color: Colors.blueAccent,
+                  ),
+                  const SizedBox(height: 20),
                   Text(
-                    'Detail Profil',
+                    'Profil Pengguna',
                     style: TextStyle(
-                      fontSize: 24,
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: Colors.blue[700],
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 30),
-                  TextFormField(
-                    controller: _nameController,
-                    readOnly: !_isEditing,
-                    decoration: InputDecoration(
-                      labelText: 'Nama Lengkap',
-                      border: OutlineInputBorder(
+
+                  // Card Informasi Detail Profil
+                  Card(
+                    elevation: 5,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    margin: const EdgeInsets.symmetric(horizontal: 0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildProfileInfoRow(
+                            Icons.person,
+                            'Nama Lengkap',
+                            _currentUser?.name ?? 'Memuat...',
+                          ),
+                          const Divider(height: 25, thickness: 1),
+                          _buildProfileInfoRow(
+                            Icons.phone,
+                            'Nomor Telepon',
+                            _currentUser?.phoneNumber ?? 'Memuat...',
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Tombol Edit Profil
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _isEditing = true; // Masuk mode edit
+                        _passwordController.clear();
+                        _confirmPasswordController.clear();
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      prefixIcon: const Icon(Icons.person, color: Colors.blue),
+                    ),
+                    child: const Text(
+                      'EDIT PROFIL',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  TextFormField(
-                    controller: _phoneController,
-                    readOnly: !_isEditing,
-                    keyboardType: TextInputType.phone,
-                    decoration: InputDecoration(
-                      labelText: 'Nomor Telepon',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      prefixIcon: const Icon(Icons.phone, color: Colors.blue),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
+
+                  // Bagian Edit Profil (muncul saat _isEditing adalah true)
                   if (_isEditing) ...[
+                    const Divider(
+                      height: 40,
+                      thickness: 1,
+                      color: Colors.blueGrey,
+                    ),
+                    Text(
+                      'Edit Detail Profil',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue[700],
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Nama Lengkap',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        prefixIcon: const Icon(
+                          Icons.person,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        labelText: 'Nomor Telepon',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        prefixIcon: const Icon(Icons.phone, color: Colors.blue),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
                     TextFormField(
                       controller: _passwordController,
                       obscureText: true,
@@ -264,83 +347,91 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 30),
-                  ],
-                  if (_errorMessage.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: Text(
-                        _errorMessage,
-                        style: const TextStyle(color: Colors.red, fontSize: 14),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  _isEditing
-                      ? ElevatedButton(
-                          onPressed: _updateProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
+                    if (_errorMessage.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: Text(
+                          _errorMessage,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 14,
                           ),
-                          child: const Text(
-                            'SIMPAN PERUBAHAN',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      : ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _isEditing = true;
-                              _passwordController.clear();
-                              _confirmPasswordController.clear();
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 15),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: const Text(
-                            'EDIT PROFIL',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          textAlign: TextAlign.center,
                         ),
-                  const SizedBox(height: 20), // Tambahkan spasi di sini
-                  // --- PERBAIKAN: Tombol Logout Ditambahkan di sini ---
-                  ElevatedButton(
-                    onPressed: _logout, // Memanggil fungsi _logout yang baru
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ElevatedButton(
+                      onPressed: _updateProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            Colors.green, // Warna berbeda untuk simpan
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'SIMPAN PERUBAHAN',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'LOGOUT',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    const SizedBox(height: 20), // Spasi setelah tombol simpan
+                  ],
+
+                  // Tombol Logout (IconButton) di bagian bawah
+                  Align(
+                    alignment: Alignment.center, // Pusatkan ikon logout
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.logout,
+                        color: Colors.red,
+                        size: 40,
                       ),
+                      onPressed: _logout,
+                      tooltip: 'Logout', // Tooltip saat di-hover
                     ),
                   ),
-                  // --- END PERBAIKAN ---
+                  const SizedBox(height: 20), // Spasi di bagian paling bawah
                 ],
               ),
             ),
+    );
+  }
+
+  // Helper Widget untuk baris info profil
+  Widget _buildProfileInfoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 28, color: Colors.blueGrey[700]),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

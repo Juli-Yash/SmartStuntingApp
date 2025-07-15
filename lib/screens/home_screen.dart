@@ -26,6 +26,12 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isBeritaLoading = true;
   String _beritaErrorMessage = '';
 
+  // !!! PENTING !!!
+  // Pastikan BASE_IMAGE_URL ini sama dengan yang Anda gunakan di BeritaListScreen
+  // dan sesuai dengan struktur URL gambar di server Anda.
+  static const String BASE_IMAGE_URL =
+      'http://147.93.106.201/storage/'; // <--- PASTIKAN INI SESUAI
+
   @override
   void initState() {
     super.initState();
@@ -66,12 +72,24 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final berita = await _beritaService.fetchAllBerita();
       setState(() {
-        _latestBerita = berita.take(3).toList();
+        _latestBerita = berita.take(3).toList(); // Ambil 3 berita terbaru
       });
     } catch (e) {
       setState(() {
         _beritaErrorMessage = 'Gagal memuat berita: ${e.toString()}';
       });
+      // Handle unauthorized error, similar to _fetchCurrentUser
+      if (e.toString().contains('Sesi berakhir') ||
+          e.toString().contains('Unauthorized')) {
+        _authService.logout();
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const LoginScreen()),
+            (Route<dynamic> route) => false,
+          );
+        }
+      }
     } finally {
       setState(() {
         _isBeritaLoading = false;
@@ -80,20 +98,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _launchURL(String url) async {
-    final uri = Uri.parse(url);
+    print('Attempting to launch URL: $url');
+    final uri = Uri.tryParse(
+      url,
+    ); // Gunakan tryParse untuk menghindari error jika URL tidak valid
+
+    if (uri == null ||
+        !uri.hasScheme ||
+        (!uri.scheme.startsWith('http') && !uri.scheme.startsWith('https'))) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('URL tidak valid: $url')));
+      print('Invalid URL scheme or format: $url');
+      return;
+    }
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Tidak dapat membuka link: $url')));
+      print('Could not launch URL: $url');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     // --- PERUBAHAN PENTING DI SINI: Urutan Widget Options untuk Tab Bar ---
-    final List<Widget> _widgetOptions = <Widget>[
+    final List<Widget> widgetOptions = <Widget>[
       // Index 0: Home/Dashboard Content
       SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -156,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 30),
 
-            // Bagian Berita Terbaru (tetap sama)
+            // Bagian Berita Terbaru (DIUBAH UNTUK MENAMPILKAN GAMBAR)
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -201,6 +234,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ? const Center(child: Text('Belum ada berita terbaru.'))
                 : Column(
                     children: _latestBerita.map((berita) {
+                      // MODIFIKASI DIMULAI DI SINI UNTUK GAMBAR
+                      final String? fullImageUrl =
+                          (berita.image != null && berita.image!.isNotEmpty)
+                          ? BASE_IMAGE_URL + berita.image!
+                          : null;
+
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12.0),
                         elevation: 3,
@@ -215,37 +254,66 @@ class _HomeScreenState extends State<HomeScreen> {
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                if (berita.image != null &&
-                                    berita.image!.isNotEmpty)
+                                // Menampilkan gambar atau placeholder
+                                if (fullImageUrl !=
+                                    null) // Jika ada URL gambar lengkap
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(8),
                                     child: Image.network(
-                                      berita.image!,
+                                      fullImageUrl, // Gunakan URL lengkap di sini
                                       width: 80,
                                       height: 80,
                                       fit: BoxFit.cover,
-                                      errorBuilder:
-                                          (context, error, stackTrace) {
-                                            return Container(
-                                              width: 80,
-                                              height: 80,
-                                              color: Colors.grey[200],
-                                              child: Icon(
-                                                Icons.broken_image,
-                                                color: Colors.grey[400],
-                                                size: 30,
-                                              ),
-                                            );
-                                          },
+                                      loadingBuilder: (context, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return Container(
+                                          width: 80,
+                                          height: 80,
+                                          color: Colors.grey[200],
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              value:
+                                                  loadingProgress
+                                                          .expectedTotalBytes !=
+                                                      null
+                                                  ? loadingProgress
+                                                            .cumulativeBytesLoaded /
+                                                        loadingProgress
+                                                            .expectedTotalBytes!
+                                                  : null,
+                                              strokeWidth:
+                                                  2, // Lebih tipis untuk ukuran kecil
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder: (context, error, stackTrace) {
+                                        print(
+                                          'Error loading image on Home Screen for URL: $fullImageUrl - Error: $error',
+                                        );
+                                        return Container(
+                                          width: 80,
+                                          height: 80,
+                                          color: Colors.grey[200],
+                                          child: Icon(
+                                            Icons.broken_image,
+                                            color: Colors.grey[400],
+                                            size: 30,
+                                          ),
+                                        );
+                                      },
                                     ),
                                   )
-                                else
+                                else // Jika tidak ada gambar, tampilkan ikon placeholder
                                   Container(
                                     width: 80,
                                     height: 80,
                                     color: Colors.grey[200],
                                     child: Icon(
-                                      Icons.newspaper,
+                                      Icons
+                                          .newspaper, // Ikon default jika tidak ada gambar
                                       color: Colors.grey[400],
                                       size: 40,
                                     ),
@@ -309,7 +377,7 @@ class _HomeScreenState extends State<HomeScreen> {
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
       ),
-      body: _widgetOptions.elementAt(_selectedIndex),
+      body: widgetOptions.elementAt(_selectedIndex),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),

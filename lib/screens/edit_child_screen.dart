@@ -185,7 +185,7 @@ class _EditChildScreenState extends State<EditChildScreen> {
         setState(() {
           _errorMessage = 'Gagal memperbarui anak:';
           response.errors!.forEach((key, value) {
-            _errorMessage += '\n${key}: ${value.join(', ')}';
+            _errorMessage += '\n$key: ${value.join(', ')}';
           });
         });
       } else {

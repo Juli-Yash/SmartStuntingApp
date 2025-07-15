@@ -20,7 +20,7 @@ class Berita {
       title: json['title'],
       content: json['content'],
       url: json['url'],
-      image: json['image'], // Image bisa null dari API
+      image: json['image'],
     );
   }
 

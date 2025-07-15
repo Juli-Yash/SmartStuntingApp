@@ -97,13 +97,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         );
         // Kembali ke ProfileTab dan beritahu untuk refresh data
-        Navigator.pop(context, true);
+        // Mengirimkan 'true' sebagai hasil dari pop untuk menandakan update berhasil
+        if (mounted) {
+          Navigator.pop(context, true);
+        }
       } else if (response.errors != null && response.errors!.isNotEmpty) {
         // Error validasi dari server
         setState(() {
           _errorMessage = 'Gagal memperbarui profil:';
           response.errors!.forEach((key, value) {
-            _errorMessage += '\n${key}: ${value.join(', ')}';
+            _errorMessage += '\n$key: ${value.join(', ')}';
           });
         });
       } else {
@@ -183,7 +186,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     if (value == null || value.isEmpty) {
                       return 'Nomor telepon tidak boleh kosong';
                     }
-                    // Tambahkan validasi format nomor telepon jika diperlukan
                     return null;
                   },
                 ),
