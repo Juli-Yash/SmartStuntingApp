@@ -154,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
-                color: Colors.blue[700],
+                color: Colors.blueAccent,
               ),
             ),
             const SizedBox(height: 15),
@@ -198,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue[700],
+                    color: Colors.blueAccent,
                   ),
                 ),
                 TextButton(

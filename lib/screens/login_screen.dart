@@ -2,8 +2,8 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../models/auth_response.dart';
-import 'home_screen.dart'; // Import HomeScreen
-import 'register_screen.dart'; // Import RegisterScreen
+import 'home_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -78,8 +78,8 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text('Login Smart Stunting'),
         centerTitle: true,
-        backgroundColor: Colors.blue, // Warna biru
-        foregroundColor: Colors.white, // Teks dan ikon putih
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -95,20 +95,32 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
-                    color: Colors.blue, // Teks biru
+                    color: Colors.blue,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20), // Spasi sebelum logo
-                // --- TAMBAHAN LOGO DI SINI ---
-                Image.asset(
-                  'assets/images/app_logo.png', // Ganti dengan path logo Anda
-                  height: 120, // Sesuaikan tinggi logo sesuai kebutuhan
+                const SizedBox(height: 20),
+                // --- PERUBAHAN UNTUK LOGO AGAR BULAT SEMPURNA DIMULAI DI SINI ---
+                Center(
+                  // Memastikan ClipOval berada di tengah dan memiliki ruang yang cukup
+                  child: SizedBox(
+                    // Memastikan ClipOval memiliki batasan ukuran persegi
+                    width: 120, // Sesuaikan ukuran sesuai kebutuhan
+                    height: 120, // Pastikan sama dengan width
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/app_logo.png',
+                        height: 120, // Tinggi gambar di dalam ClipOval
+                        width:
+                            120, // Lebar gambar di dalam ClipOval (harus sama dengan height)
+                        fit: BoxFit
+                            .cover, // Penting agar gambar mengisi lingkaran tanpa distorsi
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(
-                  height: 40,
-                ), // Spasi setelah logo dan sebelum form
-                // --- AKHIR TAMBAHAN LOGO ---
+                // --- PERUBAHAN UNTUK LOGO AGAR BULAT SEMPURNA BERAKHIR DI SINI ---
+                const SizedBox(height: 40),
                 TextField(
                   controller: _phoneController,
                   decoration: InputDecoration(
@@ -117,10 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    prefixIcon: const Icon(
-                      Icons.phone,
-                      color: Colors.blue,
-                    ), // Ikon biru
+                    prefixIcon: const Icon(Icons.phone, color: Colors.blue),
                   ),
                   keyboardType: TextInputType.phone,
                 ),
@@ -133,10 +142,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    prefixIcon: const Icon(
-                      Icons.lock,
-                      color: Colors.blue,
-                    ), // Ikon biru
+                    prefixIcon: const Icon(Icons.lock, color: Colors.blue),
                   ),
                   obscureText: true,
                 ),
@@ -153,8 +159,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ElevatedButton(
                   onPressed: _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue, // Tombol biru
-                    foregroundColor: Colors.white, // Teks tombol putih
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -177,10 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                   child: const Text(
                     'Belum punya akun? Daftar di sini',
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontSize: 16,
-                    ), // Teks biru
+                    style: TextStyle(color: Colors.blue, fontSize: 16),
                   ),
                 ),
               ],

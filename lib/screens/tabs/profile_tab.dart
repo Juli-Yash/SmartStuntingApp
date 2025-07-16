@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:smart_stunting_app/models/user.dart';
 import 'package:smart_stunting_app/services/auth_service.dart';
 import 'package:smart_stunting_app/screens/login_screen.dart';
-// import 'package:smart_stunting_app/models/auth_response.dart'; // DIHAPUS: Unused import
 import 'package:smart_stunting_app/screens/edit_profile_screen.dart'; // Import EditProfileScreen
 
 class ProfileTab extends StatefulWidget {
@@ -22,14 +21,6 @@ class _ProfileTabState extends State<ProfileTab> {
   String _errorMessage =
       ''; // Akan digunakan untuk menampilkan error fetch/logout
 
-  // Controllers untuk edit profile tidak lagi diperlukan di sini
-  // final TextEditingController _nameController = TextEditingController();
-  // final TextEditingController _phoneController = TextEditingController();
-  // final TextEditingController _passwordController = TextEditingController();
-  // final TextEditingController _confirmPasswordController = TextEditingController();
-
-  // bool _isEditing = false; // State ini tidak lagi diperlukan di sini
-
   @override
   void initState() {
     super.initState();
@@ -38,30 +29,33 @@ class _ProfileTabState extends State<ProfileTab> {
 
   @override
   void dispose() {
-    // Pastikan tidak ada controller yang di-dispose jika tidak dideklarasikan di sini
+    // Tidak ada controller yang dideklarasikan di sini, jadi tidak perlu dispose
     super.dispose();
   }
 
   Future<void> _fetchUserProfile() async {
+    if (!mounted) return; // Pastikan widget masih mounted sebelum setState
     setState(() {
       _isLoading = true;
       _errorMessage = ''; // Reset error message
     });
     try {
       final user = await _authService.fetchUserProfile();
-      setState(() {
-        _currentUser = user;
-      });
-    } catch (e) {
-      setState(() {
-        _errorMessage =
-            'Gagal memuat profil: ${e.toString().replaceFirst('Exception: ', '')}';
-      });
-      // Jika terjadi error saat fetch (misal token expired), paksa logout
       if (mounted) {
-        await _authService.logout();
+        setState(() {
+          _currentUser = user;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage =
+              'Gagal memuat profil: ${e.toString().replaceFirst('Exception: ', '')}';
+        });
+        // Jika terjadi error saat fetch (misal token expired atau tidak ada),
+        // paksa logout lokal dan arahkan ke login.
+        await _authService.logout(); // Bersihkan token lokal
         if (mounted) {
-          // Check mounted again after async operation
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -70,13 +64,13 @@ class _ProfileTabState extends State<ProfileTab> {
         }
       }
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
-
-  // Metode _updateProfile dihapus karena sudah dipindahkan ke EditProfileScreen
 
   Future<void> _logout() async {
     bool? confirmLogout = await showDialog<bool>(
@@ -100,6 +94,7 @@ class _ProfileTabState extends State<ProfileTab> {
     );
 
     if (confirmLogout == true) {
+      if (!mounted) return; // Pastikan widget masih mounted
       setState(() {
         _isLoading = true;
         _errorMessage = ''; // Reset error message
@@ -114,14 +109,18 @@ class _ProfileTabState extends State<ProfileTab> {
           );
         }
       } catch (e) {
-        setState(() {
-          _errorMessage =
-              'Gagal logout: ${e.toString().replaceFirst('Exception: ', '')}';
-        });
+        if (mounted) {
+          setState(() {
+            _errorMessage =
+                'Gagal logout: ${e.toString().replaceFirst('Exception: ', '')}';
+          });
+        }
       } finally {
-        setState(() {
-          _isLoading = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
@@ -131,7 +130,7 @@ class _ProfileTabState extends State<ProfileTab> {
     if (_currentUser == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Profil belum dimuat. Mohon tunggu.'),
+          content: Text('Profil belum dimuat. Mohon tunggu atau coba refresh.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -149,145 +148,164 @@ class _ProfileTabState extends State<ProfileTab> {
     if (profileUpdated == true) {
       await _fetchUserProfile(); // Refresh data profil
       if (widget.onProfileUpdated != null) {
-        widget.onProfileUpdated!(); // Panggil callback ke HomeScreen
+        widget
+            .onProfileUpdated!(); // Panggil callback ke HomeScreen jika disediakan
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // PERBAIKAN: Signature method build
     return Scaffold(
-      // AppBar dihapus sepenuhnya sesuai permintaan
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blue))
-          : _errorMessage
-                .isNotEmpty // MENAMPILKAN ERROR MESSAGE
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 50,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _errorMessage,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red, fontSize: 16),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _fetchUserProfile, // Coba lagi fetch profil
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Coba Lagi'),
-                    ),
-                  ],
-                ),
+      body: RefreshIndicator(
+        onRefresh: _fetchUserProfile,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 20.0,
+                bottom: 10.0,
+                left: 16.0,
+                right: 16.0,
               ),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Icon Person di bagian atas
-                  const Icon(
-                    Icons
-                        .person_pin, // Atau Icons.account_circle, Icons.person_outline
-                    size: 100,
-                    color: Colors.blueAccent,
-                  ),
+                  const Icon(Icons.person, size: 100, color: Colors.blueAccent),
                   const SizedBox(height: 20),
-                  Text(
-                    'Profil Pengguna',
+                  const Text(
+                    'Profil Akun Pengguna',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue[700],
+                      color: Colors.blueAccent,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 30),
-
-                  // Card Informasi Detail Profil
-                  Card(
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    margin: const EdgeInsets.symmetric(horizontal: 0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildProfileInfoRow(
-                            Icons.person,
-                            'Nama Lengkap',
-                            _currentUser?.name ?? 'Memuat...',
-                          ),
-                          const Divider(height: 25, thickness: 1),
-                          _buildProfileInfoRow(
-                            Icons.phone,
-                            'Nomor Telepon',
-                            _currentUser?.phoneNumber ?? 'Memuat...',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Tombol Edit Profil
-                  ElevatedButton(
-                    onPressed:
-                        _navigateToEditProfile, // Memanggil fungsi navigasi
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      'EDIT PROFIL',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40), // Spasi sebelum ikon logout
-                  // Tombol Logout (IconButton) di bagian bawah
-                  Align(
-                    alignment: Alignment.center,
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.logout,
-                        color: Colors.red,
-                        size: 40,
-                      ),
-                      onPressed: _logout,
-                      tooltip: 'Logout',
-                    ),
-                  ),
-                  const SizedBox(height: 20), // Spasi di paling bawah
+                  const SizedBox(height: 15),
                 ],
               ),
             ),
+
+            Expanded(
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(color: Colors.blue),
+                    )
+                  : _errorMessage.isNotEmpty
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.red,
+                              size: 50,
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              _errorMessage,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 16,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: _fetchUserProfile,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue,
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text('Coba Lagi'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  : SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 0.0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Card(
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            margin: const EdgeInsets.symmetric(horizontal: 0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(20.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildProfileInfoRow(
+                                    Icons.person,
+                                    'Nama Lengkap',
+                                    _currentUser?.name ?? 'Memuat...',
+                                  ),
+                                  const Divider(height: 25, thickness: 1),
+                                  _buildProfileInfoRow(
+                                    Icons.phone,
+                                    'Nomor Telepon',
+                                    _currentUser?.phoneNumber ?? 'Memuat...',
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+
+                          ElevatedButton(
+                            onPressed: _navigateToEditProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blueAccent,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 15),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            child: const Text(
+                              'EDIT PROFIL',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          // Tombol Logout (IconButton) di bagian bawah
+                          Align(
+                            alignment: Alignment.center,
+                            child: IconButton(
+                              icon: const Icon(
+                                Icons.logout,
+                                color: Colors.red,
+                                size: 40,
+                              ),
+                              onPressed: _logout,
+                              tooltip: 'Logout',
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  // Helper Widget untuk baris info profil
   Widget _buildProfileInfoRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),

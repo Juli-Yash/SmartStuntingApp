@@ -15,7 +15,7 @@ class EditChildScreen extends StatefulWidget {
 }
 
 class _EditChildScreenState extends State<EditChildScreen> {
-  final _formKey = GlobalKey<FormState>(); // Kunci untuk validasi form
+  final _formKey = GlobalKey<FormState>();
   final ChildService _childService = ChildService();
 
   // Controllers untuk input teks
@@ -37,7 +37,7 @@ class _EditChildScreenState extends State<EditChildScreen> {
 
   // Dropdown options
   final List<String> _genderOptions = ['Laki-laki', 'Perempuan'];
-  final List<String> _vitaminAOptions = ['0', '1', '2'];
+  final List<String> _vitaminAOptions = ['0', '1', '2', '3', '4', '5'];
   final List<String> _educationOptions = [
     'Tidak Sekolah',
     'SD',
@@ -51,7 +51,6 @@ class _EditChildScreenState extends State<EditChildScreen> {
   @override
   void initState() {
     super.initState();
-    // Inisialisasi controller dengan data anak yang ada
     _nameController = TextEditingController(text: widget.child.nama);
     _selectedGender = widget.child.jenisKelamin;
     _selectedDateOfBirth = widget.child.tanggalLahir;
@@ -70,8 +69,7 @@ class _EditChildScreenState extends State<EditChildScreen> {
     _districtController = TextEditingController(
       text: widget.child.kecamatan ?? '',
     );
-    _selectedVitaminA =
-        widget.child.jumlahVitA?.toString() ?? '0'; // Default 0 jika null
+    _selectedVitaminA = widget.child.jumlahVitA?.toString() ?? '0';
     _selectedFatherEducation = widget.child.pendidikanAyah;
     _selectedMotherEducation = widget.child.pendidikanIbu;
   }
@@ -101,7 +99,6 @@ class _EditChildScreenState extends State<EditChildScreen> {
     }
   }
 
-  // Fungsi untuk menghitung umur dalam bulan (diperlukan saat update juga)
   int _calculateAgeInMonths(DateTime dob) {
     final now = DateTime.now();
     int months = (now.year - dob.year) * 12;
@@ -137,7 +134,6 @@ class _EditChildScreenState extends State<EditChildScreen> {
     try {
       final int ageInMonths = _calculateAgeInMonths(_selectedDateOfBirth!);
 
-      // Buat map hanya dengan data yang diubah
       Map<String, dynamic> updateData = {
         'nama': _nameController.text,
         'jenis_kelamin': _selectedGender,
@@ -166,7 +162,6 @@ class _EditChildScreenState extends State<EditChildScreen> {
       );
 
       if (response.message != null && response.accessToken == null) {
-        // Asumsi sukses jika ada message dan bukan token
         setState(() {
           _successMessage = response.message!;
           _errorMessage = '';
@@ -177,10 +172,7 @@ class _EditChildScreenState extends State<EditChildScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(
-          context,
-          true,
-        ); // Kembali ke ChildDetailScreen dan refresh
+        Navigator.pop(context, true);
       } else if (response.errors != null && response.errors!.isNotEmpty) {
         setState(() {
           _errorMessage = 'Gagal memperbarui anak:';
@@ -376,7 +368,7 @@ class _EditChildScreenState extends State<EditChildScreen> {
                 TextFormField(
                   controller: _armCircumferenceController,
                   decoration: InputDecoration(
-                    labelText: 'Lingkar Lengan (cm) (Opsional)',
+                    labelText: 'Lingkar Lengan Atas (cm) (Opsional)',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),

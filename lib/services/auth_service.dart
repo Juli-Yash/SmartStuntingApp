@@ -21,9 +21,8 @@ class AuthService {
   Future<void> _removeToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('access_token');
-    await prefs.remove(
-      'user_id',
-    ); // <<< TAMBAHKAN: Hapus juga user_id saat logout
+    await prefs.remove('user_id'); // Hapus juga user_id saat logout
+    await prefs.remove('user_data'); // Hapus juga user_data saat logout
   }
 
   // --- START PERBAIKAN: Tambahkan metode untuk User ID ---
@@ -74,13 +73,11 @@ class AuthService {
         final authResponse = AuthResponse.fromJson(responseBody);
         if (authResponse.accessToken != null) {
           await _saveToken(authResponse.accessToken!);
-          // --- PERBAIKAN: Setelah login berhasil, ambil profil dan simpan user_id ---
-          final userProfile =
-              await fetchUserProfile(); // Ini akan memanggil fetchUserProfile yang sudah diperbarui
+          // PERBAIKAN: Setelah login berhasil, ambil profil dan simpan user_id
+          final userProfile = await fetchUserProfile();
           if (userProfile != null) {
             await _saveUserId(userProfile.id); // Simpan ID pengguna
           }
-          // --- END PERBAIKAN ---
         }
         return authResponse;
       } else {
@@ -126,12 +123,11 @@ class AuthService {
         final authResponse = AuthResponse.fromJson(responseBody);
         if (authResponse.accessToken != null) {
           await _saveToken(authResponse.accessToken!);
-          // --- PERBAIKAN: Setelah register berhasil, ambil profil dan simpan user_id ---
+          // PERBAIKAN: Setelah register berhasil, ambil profil dan simpan user_id
           final userProfile = await fetchUserProfile();
           if (userProfile != null) {
             await _saveUserId(userProfile.id); // Simpan ID pengguna
           }
-          // --- END PERBAIKAN ---
         }
         return authResponse;
       } else {
@@ -198,9 +194,12 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final user = User.fromJson(responseBody);
-        // --- PERBAIKAN: Simpan ID pengguna yang baru diambil ---
+        // PERBAIKAN: Simpan ID pengguna yang baru diambil
         await _saveUserId(user.id);
-        // --- END PERBAIKAN ---
+        // Tambahan: simpan juga seluruh data user jika diperlukan di kemudian hari tanpa fetch ulang
+        await SharedPreferences.getInstance().then(
+          (prefs) => prefs.setString('user_data', jsonEncode(user.toJson())),
+        );
         return user;
       } else if (response.statusCode == 401) {
         // Token tidak valid/expired, paksa logout
@@ -246,9 +245,8 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        // Setelah update profil, kemungkinan nama/phone berubah,
-        // tapi ID tetap sama, jadi tidak perlu save user_id lagi.
-        // Cukup pastikan data di UI di-refresh (sudah dilakukan di ProfileTab)
+        // Setelah update profil, refresh data user di SharedPreferences
+        await fetchUserProfile(); // Fetch ulang profil untuk memastikan data terbaru tersimpan
         return AuthResponse.fromJson(responseBody);
       } else {
         return AuthResponse.fromJson(responseBody);

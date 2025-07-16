@@ -1,10 +1,10 @@
 // lib/screens/child_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Untuk format tanggal
+import 'package:intl/intl.dart';
 import 'package:smart_stunting_app/models/child.dart';
 // import 'package:smart_stunting_app/models/riwayat.dart';
 import 'package:smart_stunting_app/services/child_service.dart';
-import 'package:smart_stunting_app/screens/edit_child_screen.dart'; // Akan kita buat nanti
+import 'package:smart_stunting_app/screens/edit_child_screen.dart';
 
 class ChildDetailScreen extends StatefulWidget {
   final int childId; // ID anak yang akan ditampilkan
@@ -43,7 +43,6 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
         _errorMessage = e.toString().replaceFirst('Exception: ', '');
         _isLoading = false;
       });
-      // Handle navigation to login if token expired (already handled in ChildService)
     }
   }
 
@@ -51,7 +50,8 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_childDetail?.nama ?? 'Detail Anak'),
+        // title: Text(_childDetail?.nama ?? 'Detail Anak'),
+        title: const Text('Detail Data Anak'),
         centerTitle: true,
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
@@ -61,17 +61,14 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
               icon: const Icon(Icons.edit),
               tooltip: 'Edit Data Anak',
               onPressed: () async {
-                // Navigasi ke EditChildScreen dan tunggu hasil
                 final result = await Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => EditChildScreen(
-                      child: _childDetail!,
-                    ), // Kirim objek child
+                    builder: (context) => EditChildScreen(child: _childDetail!),
                   ),
                 );
                 if (result == true) {
-                  _fetchChildDetail(); // Muat ulang detail jika berhasil diupdate
+                  _fetchChildDetail();
                 }
               },
             ),
@@ -117,6 +114,15 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    'Ringkasan Data Anak',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(
@@ -233,9 +239,8 @@ class _ChildDetailScreenState extends State<ChildDetailScreen> {
                     )
                   else
                     ListView.builder(
-                      shrinkWrap: true, // Agar ListView tidak makan semua ruang
-                      physics:
-                          const NeverScrollableScrollPhysics(), // Nonaktifkan scroll ListView
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       itemCount: _childDetail!.riwayats!.length,
                       itemBuilder: (context, index) {
                         final riwayat = _childDetail!.riwayats![index];

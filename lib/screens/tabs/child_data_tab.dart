@@ -116,164 +116,190 @@ class _ChildDataTabState extends State<ChildDataTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.blue))
-          : _errorMessage.isNotEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 50,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      _errorMessage,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red, fontSize: 16),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _fetchChildren,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Coba Lagi'),
-                    ),
-                  ],
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(
+              top: 20.0,
+              bottom: 10.0,
+              left: 16.0,
+              right: 16.0,
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.child_care,
+                  size: 100,
+                  color: Colors.blueAccent,
                 ),
-              ),
-            )
-          : _children
-                .isEmpty // KONDISI KETIKA DATA ANAK KOSONG
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // --- TAMBAHAN BARU DIMULAI DI SINI ---
-                  const Icon(
-                    Icons.child_care, // Ikon anak
-                    size: 100, // Ukuran ikon yang lebih besar
-                    color: Colors.lightBlue, // Warna yang lebih cerah
+                const SizedBox(height: 20),
+                const Text(
+                  'Data Anak Pengguna',
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Data Anak Pengguna Baru', // Keterangan baru
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blueAccent,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 15), // Spasi setelah keterangan baru
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 15),
+              ],
+            ),
+          ),
 
-                  // --- TAMBAHAN BARU BERAKHIR DI SINI ---
-                  const Icon(
-                    Icons.info_outline,
-                    size: 80,
-                    color: Colors.blueGrey,
-                  ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Belum ada data anak.',
-                    style: TextStyle(fontSize: 20, color: Colors.blueGrey),
-                  ),
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Tambahkan data anak pertama Anda sekarang!',
-                    style: TextStyle(fontSize: 16, color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: _children.length,
-              itemBuilder: (context, index) {
-                final child = _children[index];
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 15),
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: InkWell(
-                    onTap: () async {
-                      // Navigasi ke detail anak dan refresh jika ada perubahan
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              ChildDetailScreen(childId: child.id),
-                        ),
-                      );
-                      _fetchChildren(); // Muat ulang daftar setelah kembali dari detail/edit
-                    },
-                    borderRadius: BorderRadius.circular(15),
+          Expanded(
+            child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.blue),
+                  )
+                : _errorMessage.isNotEmpty
+                ? Center(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.blue.withOpacity(0.1),
-                            child: Icon(
-                              child.jenisKelamin == 'Laki-laki'
-                                  ? Icons.male
-                                  : Icons.female,
-                              size: 35,
-                              color: Colors.blue,
-                            ),
-                          ),
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  child.nama,
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                const SizedBox(height: 5),
-                                Text(
-                                  '${child.umurBulan} bulan | ${child.berat} kg | ${child.tinggi} cm',
-                                  style: TextStyle(
-                                    fontSize: 15,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                // Anda bisa menambahkan detail lain di sini
-                              ],
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteChild(child.id),
-                          ),
                           const Icon(
-                            Icons.arrow_forward_ios,
-                            size: 20,
-                            color: Colors.grey,
+                            Icons.error_outline,
+                            color: Colors.red,
+                            size: 50,
+                          ),
+                          const SizedBox(height: 10),
+                          Text(
+                            _errorMessage,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 16,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: _fetchChildren,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                            ),
+                            child: const Text('Coba Lagi'),
                           ),
                         ],
                       ),
                     ),
+                  )
+                : _children.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 80,
+                          color: Colors.blueGrey,
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          'Belum ada data anak.',
+                          style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.blueGrey,
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Tambahkan data anak pertama Anda sekarang!',
+                          style: TextStyle(fontSize: 16, color: Colors.grey),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: _children.length,
+                    itemBuilder: (context, index) {
+                      final child = _children[index];
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 15),
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: InkWell(
+                          onTap: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    ChildDetailScreen(childId: child.id),
+                              ),
+                            );
+                            _fetchChildren();
+                          },
+                          borderRadius: BorderRadius.circular(15),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CircleAvatar(
+                                  radius: 30,
+                                  backgroundColor: Colors.blue.withOpacity(0.1),
+                                  child: Icon(
+                                    child.jenisKelamin == 'Laki-laki'
+                                        ? Icons.male
+                                        : Icons.female,
+                                    size: 35,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                const SizedBox(width: 15),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        child.nama,
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        '${child.umurBulan} bulan | ${child.berat} kg | ${child.tinggi} cm',
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: Colors.grey[700],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => _deleteChild(child.id),
+                                ),
+                                const Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 20,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
+          ),
+        ],
+      ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           final result = await Navigator.push(

@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../models/auth_response.dart';
-import 'login_screen.dart'; // Import LoginScreen untuk navigasi kembali
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -106,8 +106,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         title: const Text('Daftar Akun Smart Stunting'),
         centerTitle: true,
-        backgroundColor: Colors.blue, // Warna biru
-        foregroundColor: Colors.white, // Teks dan ikon putih
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -127,16 +127,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 20), // Spasi sebelum logo
-                // --- TAMBAHAN LOGO DI SINI ---
-                Image.asset(
-                  'assets/images/app_logo.png', // Ganti dengan path logo Anda
-                  height: 120, // Sesuaikan tinggi logo sesuai kebutuhan
+                const SizedBox(height: 20),
+                // --- PERUBAHAN UNTUK LOGO AGAR BULAT SEMPURNA DIMULAI DI SINI ---
+                Center(
+                  // Memastikan ClipOval berada di tengah
+                  child: SizedBox(
+                    // Memastikan ClipOval memiliki batasan ukuran persegi
+                    width: 120, // Sesuaikan ukuran sesuai kebutuhan
+                    height: 120, // Pastikan sama dengan width
+                    child: ClipOval(
+                      child: Image.asset(
+                        'assets/images/app_logo.png',
+                        height: 120, // Tinggi gambar di dalam ClipOval
+                        width:
+                            120, // Lebar gambar di dalam ClipOval (harus sama dengan height)
+                        fit: BoxFit
+                            .cover, // Penting agar gambar mengisi lingkaran tanpa distorsi
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(
-                  height: 40,
-                ), // Spasi setelah logo dan sebelum form
-                // --- AKHIR TAMBAHAN LOGO ---
+                // --- PERUBAHAN UNTUK LOGO AGAR BULAT SEMPURNA BERAKHIR DI SINI ---
+                const SizedBox(height: 40),
                 TextField(
                   controller: _nameController,
                   decoration: InputDecoration(

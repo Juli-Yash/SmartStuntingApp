@@ -49,6 +49,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
 
     if (!_formKey.currentState!.validate()) {
+      // Jika validasi form dasar gagal
       return;
     }
 
@@ -63,6 +64,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (_passwordController.text != _passwordConfirmationController.text) {
         setState(() {
           _errorMessage = 'Konfirmasi kata sandi tidak cocok.';
+        });
+        return;
+      }
+    } else {
+      // Jika password kosong, pastikan konfirmasi password juga kosong
+      if (_passwordConfirmationController.text.isNotEmpty) {
+        setState(() {
+          _errorMessage =
+              'Konfirmasi kata sandi harus kosong jika kata sandi baru kosong.';
         });
         return;
       }
@@ -84,8 +94,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             : _passwordConfirmationController.text, // Kirim null jika kosong
       );
 
-      if (response.message != null && response.accessToken == null) {
-        // Jika ada pesan sukses (message) dan bukan token (untuk update), berarti sukses
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+
+      // Periksa 'success' property dari AuthResponse atau asumsi berdasarkan message/errors
+      if (response.message != null &&
+          (response.errors == null || response.errors!.isEmpty)) {
         setState(() {
           _successMessage = response.message!;
           _errorMessage = ''; // Hapus pesan error sebelumnya
@@ -96,35 +113,52 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             backgroundColor: Colors.green,
           ),
         );
+        // Kosongkan password fields setelah berhasil update
+        _passwordController.clear();
+        _passwordConfirmationController.clear();
         // Kembali ke ProfileTab dan beritahu untuk refresh data
-        // Mengirimkan 'true' sebagai hasil dari pop untuk menandakan update berhasil
         if (mounted) {
-          Navigator.pop(context, true);
+          Navigator.pop(
+            context,
+            true,
+          ); // Mengirimkan 'true' sebagai hasil dari pop untuk menandakan update berhasil
         }
       } else if (response.errors != null && response.errors!.isNotEmpty) {
         // Error validasi dari server
         setState(() {
           _errorMessage = 'Gagal memperbarui profil:';
           response.errors!.forEach((key, value) {
-            _errorMessage += '\n$key: ${value.join(', ')}';
+            _errorMessage +=
+                '\n${value.join(', ')}'; // Tampilkan hanya pesan error, bukan nama field
           });
+          _successMessage = '';
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_errorMessage), backgroundColor: Colors.red),
+        );
       } else {
         // Error umum atau pesan error lainnya dari server
         setState(() {
           _errorMessage =
               response.message ??
               'Terjadi kesalahan tidak dikenal saat memperbarui profil.';
+          _successMessage = '';
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_errorMessage), backgroundColor: Colors.red),
+        );
       }
     } catch (e) {
-      setState(() {
-        _errorMessage = 'Terjadi kesalahan jaringan: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _errorMessage = 'Terjadi kesalahan jaringan: $e';
+          _successMessage = '';
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_errorMessage), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 
@@ -209,6 +243,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     prefixIcon: const Icon(Icons.lock, color: Colors.blue),
                   ),
                   obscureText: true,
+                  // Validator di sini hanya untuk panjang, validasi kecocokan di _updateProfile
                   validator: (value) {
                     if (value != null && value.isNotEmpty && value.length < 8) {
                       return 'Kata sandi minimal 8 karakter.';
@@ -230,36 +265,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                   ),
                   obscureText: true,
+                  // Validator di sini hanya untuk keberadaan jika password baru diisi
                   validator: (value) {
                     if (_passwordController.text.isNotEmpty &&
                         (value == null || value.isEmpty)) {
-                      return 'Konfirmasi kata sandi tidak boleh kosong jika mengubah kata sandi.';
+                      return 'Konfirmasi kata sandi harus diisi.';
                     }
-                    if (_passwordController.text != value) {
-                      return 'Konfirmasi kata sandi tidak cocok.';
-                    }
-                    return null;
+                    return null; // Validasi kecocokan sudah di _updateProfile
                   },
                 ),
                 const SizedBox(height: 30),
-                if (_errorMessage.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Text(
-                      _errorMessage,
-                      style: const TextStyle(color: Colors.red, fontSize: 14),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                if (_successMessage.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: Text(
-                      _successMessage,
-                      style: const TextStyle(color: Colors.green, fontSize: 14),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
+                // Tidak perlu menampilkan _errorMessage dan _successMessage terpisah di sini
+                // Cukup gunakan SnackBar
                 _isLoading
                     ? const Center(
                         child: CircularProgressIndicator(color: Colors.blue),

@@ -42,7 +42,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
 
   // Dropdown options
   final List<String> _genderOptions = ['Laki-laki', 'Perempuan'];
-  final List<String> _vitaminAOptions = ['0', '1', '2']; // Jumlah Vit A
+  final List<String> _vitaminAOptions = ['0', '1', '2', '3', '4', '5'];
   final List<String> _educationOptions = [
     'Tidak Sekolah',
     'SD',
@@ -64,13 +64,12 @@ class _AddChildScreenState extends State<AddChildScreen> {
     super.dispose();
   }
 
-  // Fungsi untuk memilih tanggal lahir
   Future<void> _selectDateOfBirth(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: _selectedDateOfBirth ?? DateTime.now(),
-      firstDate: DateTime(2000), // Batasan tanggal awal
-      lastDate: DateTime.now(), // Batasan tanggal akhir (hari ini)
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
     );
     if (picked != null && picked != _selectedDateOfBirth) {
       setState(() {
@@ -79,7 +78,6 @@ class _AddChildScreenState extends State<AddChildScreen> {
     }
   }
 
-  // Fungsi untuk menghitung umur dalam bulan
   int _calculateAgeInMonths(DateTime dob) {
     final now = DateTime.now();
     int months = (now.year - dob.year) * 12;
@@ -115,26 +113,22 @@ class _AddChildScreenState extends State<AddChildScreen> {
     try {
       final int ageInMonths = _calculateAgeInMonths(_selectedDateOfBirth!);
 
-      // --- START PERBAIKAN: Ambil user_id yang sebenarnya ---
       final int? currentUserId = await _authService.getUserId();
       if (currentUserId == null) {
         setState(() {
           _errorMessage = 'ID pengguna tidak ditemukan. Harap login kembali.';
         });
-        // Opsional: Arahkan pengguna ke LoginScreen jika ID tidak ditemukan
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
           (Route<dynamic> route) => false,
         );
-        return; // Hentikan proses jika user_id tidak ada
+        return;
       }
-      // --- END PERBAIKAN ---
 
       final newChild = Child(
-        id: 0, // ID akan di-generate oleh server
-        userId:
-            currentUserId, // <<< GUNAKAN ID PENGGUNA YANG SEBENARNYA DI SINI
+        id: 0,
+        userId: currentUserId,
         nama: _nameController.text,
         jenisKelamin: _selectedGender,
         umurBulan: ageInMonths,
@@ -152,14 +146,13 @@ class _AddChildScreenState extends State<AddChildScreen> {
         jumlahVitA: int.parse(_selectedVitaminA!),
         pendidikanAyah: _selectedFatherEducation,
         pendidikanIbu: _selectedMotherEducation,
-        statusGizi: null, // Ini akan diisi oleh API setelah webhook
+        statusGizi: null,
         tanggalLahir: _selectedDateOfBirth!,
       );
 
       final AuthResponse response = await _childService.addChild(newChild);
 
       if (response.message != null && response.accessToken == null) {
-        // Asumsi sukses jika ada message dan bukan token (karena API POST anak cuma return id, nama)
         setState(() {
           _successMessage = response.message!;
           _errorMessage = '';
@@ -186,8 +179,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
       }
     } catch (e) {
       setState(() {
-        _errorMessage =
-            'Terjadi kesalahan: $e'; // Mengubah pesan error agar lebih generik
+        _errorMessage = 'Terjadi kesalahan: $e';
       });
     } finally {
       setState(() {
@@ -367,7 +359,7 @@ class _AddChildScreenState extends State<AddChildScreen> {
                 TextFormField(
                   controller: _armCircumferenceController,
                   decoration: InputDecoration(
-                    labelText: 'Lingkar Lengan (cm) (Opsional)',
+                    labelText: 'Lingkar Lengan Atas (cm) (Opsional)',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
