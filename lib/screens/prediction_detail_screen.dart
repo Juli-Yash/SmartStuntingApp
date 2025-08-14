@@ -102,27 +102,8 @@ class PredictionDetailScreen extends StatelessWidget {
                   ),
                 ),
                 const Divider(height: 30, thickness: 1.5, color: Colors.blue),
+
                 // --- Informasi Prediksi ---
-                _buildDetailRow('Nama Anak', childName),
-
-                _buildDetailRow(
-                  'ID Prediksi',
-                  prediction.id?.toString() ?? 'N/A',
-                ),
-                _buildDetailRow(
-                  'Tanggal Prediksi',
-                  prediction.createdAt != null
-                      ? DateFormat(
-                          'dd MMMM yyyy, HH:mm',
-                        ).format(prediction.createdAt!)
-                      : 'N/A',
-                ),
-
-                _buildDetailRow(
-                  'Terkait Antropometri ID',
-                  prediction.antropometryRecordId.toString(),
-                ),
-
                 const SizedBox(height: 20),
                 const Text(
                   'Data Antropometri Terkait:',
@@ -133,6 +114,8 @@ class PredictionDetailScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 10),
+                _buildDetailRow('Nama Anak', childName),
+
                 _buildDetailRow(
                   'Tanggal Pengukuran',
                   antropometryRecord.createdAt != null
@@ -165,8 +148,8 @@ class PredictionDetailScreen extends StatelessWidget {
                   ),
                 if (antropometryRecord.vitaminACount != null)
                   _buildDetailRow(
-                    'Dosis Vitamin A',
-                    antropometryRecord.vitaminACount.toString(),
+                    'Frekuensi Pemberian Kapsul Vit. A',
+                    '${antropometryRecord.vitaminACount} kali',
                   ),
 
                 // --- Status Gizi Anak ---
@@ -181,14 +164,17 @@ class PredictionDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 _buildPredictionStatusRow(
-                  'Stunting',
+                  'Tinggi menurut Umur',
                   prediction.statusStunting,
                 ),
                 _buildPredictionStatusRow(
-                  'Underweight',
+                  'Berat menurut Umur',
                   prediction.statusUnderweight,
                 ),
-                _buildPredictionStatusRow('Wasting', prediction.statusWasting),
+                _buildPredictionStatusRow(
+                  'Berat menurut Tinggi',
+                  prediction.statusWasting,
+                ),
                 const SizedBox(height: 20),
                 const Text(
                   'Rekomendasi:',

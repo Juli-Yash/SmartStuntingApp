@@ -76,7 +76,6 @@ class _ChildScreenState extends State<ChildScreen> {
     }
   }
 
-  // Fungsi untuk menghapus record antropometri (ditambahkan untuk fungsionalitas tombol delete)
   Future<void> _deleteRecord(int recordId) async {
     bool? confirm = await showDialog<bool>(
       context: context,
@@ -103,11 +102,9 @@ class _ChildScreenState extends State<ChildScreen> {
 
     if (confirm == true) {
       setState(() {
-        _isLoadingAntropometry = true; // Tampilkan loading saat menghapus
+        _isLoadingAntropometry = true;
       });
       try {
-        // Asumsi _antropometryService.deleteAntropometryRecord mengembalikan AuthResponse
-        // atau tipe yang sesuai dengan penanganan kesalahan
         final response = await _antropometryService.deleteAntropometryRecord(
           recordId,
         );
@@ -133,7 +130,7 @@ class _ChildScreenState extends State<ChildScreen> {
                 backgroundColor: Colors.green,
               ),
             );
-            _loadAntropometryData(); // Muat ulang data setelah penghapusan berhasil
+            _loadAntropometryData();
           }
         }
       } catch (e) {
@@ -147,15 +144,24 @@ class _ChildScreenState extends State<ChildScreen> {
             ),
           );
           setState(() {
-            _isLoadingAntropometry =
-                false; // Sembunyikan loading jika ada error
+            _isLoadingAntropometry = false;
           });
         }
       }
     }
   }
 
-  // MARK: - Helper Functions for Card Color
+  int _calculateAgeInMonths(DateTime birthDate) {
+    final now = DateTime.now();
+    int years = now.year - birthDate.year;
+    int months = now.month - birthDate.month;
+    if (months < 0 || (months == 0 && now.day < birthDate.day)) {
+      years--;
+      months += 12;
+    }
+    return years * 12 + months;
+  }
+
   Color _getCardColorBasedOnStatus(String? statusStunting) {
     if (statusStunting == null) {
       return Colors.grey.shade200;
@@ -178,7 +184,7 @@ class _ChildScreenState extends State<ChildScreen> {
 
   Color _getBorderColorBasedOnStatus(String? statusStunting) {
     if (statusStunting == null) {
-      return Colors.grey.shade300; // Warna default
+      return Colors.grey.shade300;
     }
     final normalizedStatus = statusStunting.toLowerCase();
     switch (normalizedStatus) {
@@ -195,10 +201,11 @@ class _ChildScreenState extends State<ChildScreen> {
         return Colors.grey.shade300;
     }
   }
-  // MARK: - End of Helper Functions
 
   @override
   Widget build(BuildContext context) {
+    int ageInMonths = _calculateAgeInMonths(widget.child.birthDate);
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Data Anak'),
@@ -206,74 +213,13 @@ class _ChildScreenState extends State<ChildScreen> {
         foregroundColor: Colors.white,
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Column(
-                children: [
-                  CircleAvatar(
-                    radius: 50,
-                    backgroundColor: Colors.blue.shade100,
-                    child: Icon(
-                      widget.child.gender.toLowerCase() == 'laki-laki'
-                          ? Icons.male
-                          : Icons.female,
-                      size: 60,
-                      color: Colors.blue.shade700,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    widget.child.name,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  Text(
-                    widget.child.gender,
-                    style: TextStyle(fontSize: 18, color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.center,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          ChildDetailScreen(child: widget.child),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                ),
-                child: const Text(
-                  'Detail Anak',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildChildProfileCard(ageInMonths),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16.0, 20.0, 16.0, 0),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
@@ -311,11 +257,13 @@ class _ChildScreenState extends State<ChildScreen> {
                 ),
               ],
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20.0),
-              child: Divider(height: 1, thickness: 1, color: Colors.grey),
-            ),
-            _isLoadingAntropometry
+          ),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16.0),
+            child: Divider(height: 20, thickness: 1, color: Colors.grey),
+          ),
+          Expanded(
+            child: _isLoadingAntropometry
                 ? const Center(child: CircularProgressIndicator())
                 : _antropometryErrorMessage != null
                 ? Center(
@@ -367,8 +315,7 @@ class _ChildScreenState extends State<ChildScreen> {
                 : RefreshIndicator(
                     onRefresh: _loadAntropometryData,
                     child: ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
+                      padding: const EdgeInsets.only(bottom: 80),
                       itemCount: _antropometryRecords.length,
                       itemBuilder: (context, index) {
                         final record = _antropometryRecords[index];
@@ -385,7 +332,12 @@ class _ChildScreenState extends State<ChildScreen> {
                               width: 1.5,
                             ),
                           ),
-                          margin: const EdgeInsets.only(bottom: 16),
+                          margin: const EdgeInsets.only(
+                            top: 8,
+                            left: 16,
+                            right: 16,
+                            bottom: 16,
+                          ),
                           elevation: 4,
                           child: InkWell(
                             borderRadius: BorderRadius.circular(12),
@@ -435,9 +387,8 @@ class _ChildScreenState extends State<ChildScreen> {
                                           color: Colors.red,
                                           size: 24,
                                         ),
-                                        onPressed: () => _deleteRecord(
-                                          record.id!,
-                                        ), // Menggunakan _deleteRecord
+                                        onPressed: () =>
+                                            _deleteRecord(record.id!),
                                         tooltip: 'Hapus data ini',
                                       ),
                                     ],
@@ -471,7 +422,7 @@ class _ChildScreenState extends State<ChildScreen> {
                                     ),
                                   if (record.vitaminACount != null)
                                     Text(
-                                      'Dosis Vitamin A: ${record.vitaminACount}',
+                                      'Frekuensi Pemberian Kapsul Vit. A: ${record.vitaminACount} kali',
                                       style: const TextStyle(fontSize: 14),
                                     ),
                                   if (record.predictionRecord != null) ...[
@@ -486,17 +437,17 @@ class _ChildScreenState extends State<ChildScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     _buildPredictionStatusRow(
-                                      'Stunting',
+                                      'Tinggi menurut Umur',
                                       record.predictionRecord!.statusStunting,
                                     ),
                                     _buildPredictionStatusRow(
-                                      'Underweight',
+                                      'Berat menurut Umur',
                                       record
                                           .predictionRecord!
                                           .statusUnderweight,
                                     ),
                                     _buildPredictionStatusRow(
-                                      'Wasting',
+                                      'Berat menurut Tinggi',
                                       record.predictionRecord!.statusWasting,
                                     ),
                                   ],
@@ -508,8 +459,8 @@ class _ChildScreenState extends State<ChildScreen> {
                       },
                     ),
                   ),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton:
           _antropometryRecords.isEmpty &&
@@ -524,6 +475,95 @@ class _ChildScreenState extends State<ChildScreen> {
               label: const Text('Tambah Antropometri'),
             ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Widget _buildChildProfileCard(int ageInMonths) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.blue,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 20.0, left: 16.0, right: 16.0),
+        child: Card(
+          color: Colors.blue,
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChildDetailScreen(child: widget.child),
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: Colors.white,
+                    child: Icon(
+                      widget.child.gender.toLowerCase() == 'laki-laki'
+                          ? Icons.male
+                          : Icons.female,
+                      size: 50,
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.child.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Jenis Kelamin: ${widget.child.gender}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                  Text(
+                    'Tanggal Lahir: ${DateFormat('dd MMMM yyyy').format(widget.child.birthDate)}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                  Text(
+                    'Usia: $ageInMonths bulan',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 

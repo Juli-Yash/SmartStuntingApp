@@ -32,7 +32,14 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
   final TextEditingController _upperArmCircumferenceController =
       TextEditingController();
 
+  // Variabel untuk menyimpan usia yang dihitung
+  int _calculatedAge = 0;
   DateTime _selectedDate = DateTime.now();
+
+  // Variabel baru untuk pilihan pengukuran tinggi/panjang badan
+  String? _selectedHeightMeasurement;
+  final List<String> _heightMeasurements = ['Panjang Badan', 'Tinggi Badan'];
+  final double _adjustmentValue = 0.7; // Konstanta untuk penyesuaian
 
   int? _selectedVitaminACount;
   final List<int> _vitaminADoses = [0, 1, 2, 3, 4, 5];
@@ -58,6 +65,8 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
       setState(() {
         _currentChild = child;
         _isLoadingChild = false;
+        // Hitung usia anak saat data dimuat
+        _calculatedAge = _calculateAgeInMonths(_selectedDate);
       });
     } catch (e) {
       if (mounted) {
@@ -91,19 +100,16 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
       initialDate: _selectedDate,
       firstDate: _currentChild?.birthDate ?? DateTime(2000),
       lastDate: DateTime.now(),
-      // Penambahan tema untuk date picker agar lebih cantik
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Colors.blue, // Warna header date picker
-              onPrimary: Colors.white, // Warna teks header date picker
-              onSurface: Colors.black87, // Warna teks di dalam kalender
+              primary: Colors.blue,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
             ),
             textButtonTheme: TextButtonThemeData(
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blue, // Warna teks tombol
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.blue),
             ),
           ),
           child: child!,
@@ -113,6 +119,8 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
+        // Hitung ulang usia saat tanggal pengukuran berubah
+        _calculatedAge = _calculateAgeInMonths(_selectedDate);
       });
     }
   }
@@ -133,14 +141,38 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
       return;
     }
 
+    // Validasi pilihan pengukuran
+    if (_selectedHeightMeasurement == null) {
+      _showSnackBar(
+        'Jenis pengukuran tinggi/panjang badan harus dipilih.',
+        Colors.red,
+      );
+      return;
+    }
+
     setState(() {
       _isSaving = true;
     });
 
     try {
       final double weight = double.parse(_weightController.text);
-      final double height = double.parse(_heightController.text);
-      final int ageInMonth = _calculateAgeInMonths(_selectedDate);
+      double height = double.parse(_heightController.text);
+      final int ageInMonth = _calculatedAge;
+
+      // --- LOGIKA PENYESUAIAN PENTING DI SINI ---
+      if (ageInMonth < 25) {
+        // Anak di bawah 25 bulan, seharusnya diukur PB
+        if (_selectedHeightMeasurement == 'Tinggi Badan') {
+          // Jika diukur TB, tambahkan 0.7 cm
+          height += _adjustmentValue;
+        }
+      } else {
+        // Anak di atas 25 bulan, seharusnya diukur TB
+        if (_selectedHeightMeasurement == 'Panjang Badan') {
+          // Jika diukur PB, kurangi 0.7 cm
+          height -= _adjustmentValue;
+        }
+      }
 
       final int? vitaminACount = _selectedVitaminACount;
 
@@ -172,7 +204,7 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
         });
 
         _showSnackBar(
-          'Data antropometri berhasil ditambahkan, Id pengukuran : ${createdRecord.id})',
+          'Data antropometri berhasil ditambahkan, Id pengukuran: ${createdRecord.anakId}',
           Colors.green,
         );
 
@@ -190,27 +222,19 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
     }
   }
 
-  // Helper function untuk menampilkan SnackBar yang lebih konsisten
   void _showSnackBar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         backgroundColor: color,
         duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior
-            .floating, // Membuat snackbar di atas bottom navigation bar
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ), // Sudut membulat
-        margin: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 16,
-        ), // Jarak dari tepi
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }
 
-  // Helper widget untuk input field agar kodenya lebih rapi dan konsisten
   Widget _buildFormField({
     required TextEditingController controller,
     required String labelText,
@@ -220,39 +244,109 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
       decimal: true,
     ),
   }) {
+    return Column(
+      children: [
+        TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: labelText,
+            suffixText: suffixText,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: BorderSide(color: Colors.blue.shade200, width: 1.0),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+              borderSide: const BorderSide(color: Colors.blue, width: 2.0),
+            ),
+            filled: true,
+            fillColor: Colors.blue.shade50,
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14.0,
+              horizontal: 16.0,
+            ),
+          ),
+          keyboardType: keyboardType,
+          validator: validator,
+        ),
+      ],
+    );
+  }
+
+  // Fungsi baru untuk menampilkan teks keterangan dinamis
+  Widget _buildMeasurementInfo() {
+    String title;
+    String recommendation;
+    String automaticAdjustment;
+    String explanation;
+
+    if (_calculatedAge < 25) {
+      title = 'Panduan Pengukuran untuk Anak Usia < 25 Bulan';
+      recommendation =
+          'Untuk anak usia di bawah 25 bulan, pengukuran sebaiknya dilakukan dalam posisi berbaring menggunakan alat ukur Panjang Badan (infantometer).';
+      automaticAdjustment =
+          'Jika Anda memilih untuk mengukur dalam posisi berdiri menggunakan Tinggi Badan (stadiometer), sistem akan secara otomatis menambahkan 0.7 cm pada hasil pengukuran Anda.';
+      explanation =
+          'Penyesuaian ini krusial untuk memastikan data yang dicatat akurat dan konsisten dengan standar baku WHO, di mana pengukuran berbaring dianggap metode standar untuk kelompok usia ini.';
+    } else {
+      title = 'Panduan Pengukuran untuk Anak Usia ≥ 25 Bulan';
+      recommendation =
+          'Untuk anak usia 25 bulan atau lebih, pengukuran sebaiknya dilakukan dalam posisi berdiri menggunakan alat ukur Tinggi Badan (stadiometer).';
+      automaticAdjustment =
+          'Jika Anda memilih untuk mengukur dalam posisi berbaring menggunakan Panjang Badan (infantometer), sistem akan secara otomatis mengurangi 0.7 cm pada hasil pengukuran Anda.';
+      explanation =
+          'Hal ini bertujuan untuk menyelaraskan data dengan standar pengukuran berdiri yang direkomendasikan secara global untuk usia ini, sehingga hasil analisis menjadi lebih valid dan dapat dibandingkan.';
+    }
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
-      child: TextFormField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: labelText,
-          suffixText: suffixText,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0), // Sudut membulat
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: BorderSide(
-              color: Colors.blue.shade200,
-              width: 1.0,
-            ), // Warna border saat tidak fokus
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: const BorderSide(
-              color: Colors.blue,
-              width: 2.0,
-            ), // Warna border saat fokus
-          ),
-          filled: true,
-          fillColor: Colors.blue.shade50, // Latar belakang field
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 14.0,
-            horizontal: 16.0,
+      padding: const EdgeInsets.symmetric(vertical: 10.0),
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green.shade800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              _buildInfoRow(recommendation),
+              _buildInfoRow(automaticAdjustment),
+              _buildInfoRow(explanation),
+            ],
           ),
         ),
-        keyboardType: keyboardType,
-        validator: validator,
+      ),
+    );
+  }
+
+  // Fungsi pembantu untuk membuat baris teks yang rapi
+  Widget _buildInfoRow(String text) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.info_outline, color: Colors.green, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 14, color: Colors.green.shade700),
+              textAlign: TextAlign.justify,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -267,7 +361,7 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
         ),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
-        elevation: 0, // Hapus bayangan AppBar
+        elevation: 0,
       ),
       body: _isLoadingChild
           ? const Center(
@@ -296,7 +390,7 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                     const SizedBox(height: 30),
                     ElevatedButton.icon(
                       onPressed: () {
-                        Navigator.pop(context); // Kembali ke layar sebelumnya
+                        Navigator.pop(context);
                       },
                       icon: const Icon(Icons.arrow_back),
                       label: const Text('Kembali'),
@@ -317,16 +411,14 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
               ),
             )
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(20.0), // Padding seluruh halaman
+              padding: const EdgeInsets.all(20.0),
               child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Informasi Anak
                     Card(
                       elevation: 4,
-                      margin: const EdgeInsets.only(bottom: 20),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -344,7 +436,6 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                               ),
                             ),
                             const Divider(height: 20, thickness: 1),
-                            // Menampilkan detail anak dengan ikon
                             _buildDetailRow(
                               Icons.person,
                               'Nama Anak:',
@@ -357,16 +448,19 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                                 'dd-MM-yyyy',
                               ).format(_currentChild!.birthDate),
                             ),
-                            // Anda bisa menambahkan jenis kelamin, dll. jika ada di model Child Anda
+                            _buildDetailRow(
+                              Icons.calendar_today,
+                              'Usia:',
+                              '$_calculatedAge Bulan',
+                            ),
                           ],
                         ),
                       ),
                     ),
-
-                    // Form Pengukuran Antropometri
+                    // Keterangan dinamis di sini
+                    _buildMeasurementInfo(),
                     Card(
                       elevation: 4,
-                      margin: const EdgeInsets.only(bottom: 20),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -384,8 +478,7 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                               ),
                             ),
                             const Divider(height: 20, thickness: 1),
-
-                            // Tanggal Pengukuran (Tampilan seperti TextFormField)
+                            const SizedBox(height: 16),
                             InkWell(
                               onTap: () => _selectDate(context),
                               child: InputDecorator(
@@ -417,7 +510,7 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                                   suffixIcon: const Icon(
                                     Icons.calendar_today,
                                     color: Colors.blue,
-                                  ), // Ikon kalender
+                                  ),
                                 ),
                                 baseStyle: const TextStyle(
                                   fontSize: 16,
@@ -432,7 +525,51 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-
+                            // Pilihan Jenis Pengukuran
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: DropdownButtonFormField<String>(
+                                value: _selectedHeightMeasurement,
+                                decoration: InputDecoration(
+                                  labelText: 'Jenis Pengukuran',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                  ),
+                                  filled: true,
+                                  fillColor: Colors.blue.shade50,
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    borderSide: BorderSide(
+                                      color: Colors.blue.shade200,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    borderSide: const BorderSide(
+                                      color: Colors.blue,
+                                      width: 2.0,
+                                    ),
+                                  ),
+                                ),
+                                items: _heightMeasurements.map((String value) {
+                                  return DropdownMenuItem<String>(
+                                    value: value,
+                                    child: Text(value),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    _selectedHeightMeasurement = newValue;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Jenis pengukuran harus dipilih';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
                             _buildFormField(
                               controller: _weightController,
                               labelText: 'Berat Badan',
@@ -447,20 +584,22 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                                 return null;
                               },
                             ),
+                            const SizedBox(height: 16),
                             _buildFormField(
                               controller: _heightController,
-                              labelText: 'Tinggi Badan',
+                              labelText: 'Tinggi/Panjang Badan',
                               suffixText: 'cm',
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Tinggi badan tidak boleh kosong';
+                                  return 'Tinggi/Panjang badan tidak boleh kosong';
                                 }
                                 if (double.tryParse(value) == null) {
-                                  return 'Masukkan angka yang valid (contoh: 70.0)';
+                                  return 'Masukkan angka yang valid (contoh: 85.0)';
                                 }
                                 return null;
                               },
                             ),
+                            const SizedBox(height: 16),
                             _buildFormField(
                               controller: _headCircumferenceController,
                               labelText: 'Lingkar Kepala',
@@ -470,11 +609,12 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                                   return 'Lingkar kepala tidak boleh kosong';
                                 }
                                 if (double.tryParse(value) == null) {
-                                  return 'Masukkan angka yang valid (contoh: 43.0)';
+                                  return 'Masukkan angka yang valid (contoh: 45.0)';
                                 }
                                 return null;
                               },
                             ),
+                            const SizedBox(height: 16),
                             _buildFormField(
                               controller: _upperArmCircumferenceController,
                               labelText: 'Lingkar Lengan Atas',
@@ -489,22 +629,23 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                                 return null;
                               },
                             ),
-
-                            // Dropdown Dosis Vitamin A (dengan styling konsisten)
+                            const SizedBox(height: 16),
                             Padding(
                               padding: const EdgeInsets.only(bottom: 16.0),
                               child: DropdownButtonFormField<int>(
                                 value: _selectedVitaminACount,
                                 decoration: InputDecoration(
-                                  labelText: 'Dosis Vitamin A',
+                                  labelText:
+                                      'Frekuensi Pemberian Kapsul Vit. A',
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10.0),
                                   ),
+                                  filled: true,
+                                  fillColor: Colors.blue.shade50,
                                   enabledBorder: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10.0),
                                     borderSide: BorderSide(
                                       color: Colors.blue.shade200,
-                                      width: 1.0,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -514,19 +655,11 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                                       width: 2.0,
                                     ),
                                   ),
-                                  filled: true,
-                                  fillColor: Colors.blue.shade50,
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 14.0,
-                                    horizontal: 16.0,
-                                  ),
                                 ),
                                 items: _vitaminADoses.map((int dose) {
                                   return DropdownMenuItem<int>(
                                     value: dose,
-                                    child: Text(
-                                      '$dose kali',
-                                    ), // Tampilkan "X kali"
+                                    child: Text('$dose kali'),
                                   );
                                 }).toList(),
                                 onChanged: (int? newValue) {
@@ -536,7 +669,7 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                                 },
                                 validator: (value) {
                                   if (value == null) {
-                                    return 'Dosis Vitamin A harus dipilih.';
+                                    return 'Frekuensi Pemberian Vitamin A harus dipilih.';
                                   }
                                   return null;
                                 },
@@ -546,8 +679,7 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                         ),
                       ),
                     ),
-
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     Center(
                       child: _isSaving
                           ? const CircularProgressIndicator()
@@ -580,27 +712,29 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
     );
   }
 
-  // Helper widget untuk baris detail anak
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.blue.shade700, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(fontSize: 16, color: Colors.black87),
-                children: [
-                  TextSpan(
-                    text: label,
-                    style: const TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  TextSpan(text: ' $value'),
-                ],
-              ),
+          Icon(icon, color: Colors.blue.shade700, size: 24),
+          const SizedBox(width: 16),
+          Text(
+            '$label',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
             ),
           ),
         ],

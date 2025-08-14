@@ -125,7 +125,8 @@ class _AntropometryScreenState extends State<AntropometryScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  authResponse.message ?? 'Record berhasil dihapus',
+                  authResponse.message ??
+                      'Record antropometri berhasil dihapus',
                 ),
                 backgroundColor: Colors.green,
               ),
@@ -250,7 +251,12 @@ class _AntropometryScreenState extends State<AntropometryScreen> {
           : RefreshIndicator(
               onRefresh: _loadData,
               child: ListView.builder(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.only(
+                  top: 16.0,
+                  left: 16.0,
+                  right: 16.0,
+                  bottom: 80.0,
+                ),
                 itemCount: _antropometryRecords.length,
                 itemBuilder: (context, index) {
                   final record = _antropometryRecords[index];
@@ -349,7 +355,7 @@ class _AntropometryScreenState extends State<AntropometryScreen> {
                               ),
                             if (record.vitaminACount != null)
                               Text(
-                                'Dosis Vitamin A: ${record.vitaminACount}',
+                                'Frekuensi Pemberian Kapsul Vit. A: ${record.vitaminACount} kali',
                                 style: const TextStyle(fontSize: 14),
                               ),
 
@@ -365,15 +371,15 @@ class _AntropometryScreenState extends State<AntropometryScreen> {
                               ),
                               const SizedBox(height: 4),
                               _buildPredictionStatusRow(
-                                'Stunting',
+                                'Tinggi menurut Umur',
                                 record.predictionRecord!.statusStunting,
                               ),
                               _buildPredictionStatusRow(
-                                'Underweight',
+                                'Berat menurut Umur',
                                 record.predictionRecord!.statusUnderweight,
                               ),
                               _buildPredictionStatusRow(
-                                'Wasting',
+                                'Berat menurut Tinggi',
                                 record.predictionRecord!.statusWasting,
                               ),
                             ],

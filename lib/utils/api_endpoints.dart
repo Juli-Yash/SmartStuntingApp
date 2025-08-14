@@ -1,7 +1,7 @@
 // lib/utils/api_endpoints.dart
 
 class ApiEndpoints {
-  static const String baseUrl = 'https://smartstunting.dfxx.site/api';
+  static const String baseUrl = 'https://smartstunting.site/api';
 
   // Auth Endpoints
   static const String register = '$baseUrl/register';
@@ -26,4 +26,8 @@ class ApiEndpoints {
   static const String predictionRecord = '$baseUrl/prediction-record';
   static String predictionRecordDetail(int id) =>
       '$baseUrl/prediction-record/$id';
+
+  // --- Tambahan untuk News API ---
+  static const String newsApiUrl = 'https://newsapi.org/v2/everything';
+  static const String newsApiKey = '684a84d957fd4239aa08ce88cbc8f9db';
 }

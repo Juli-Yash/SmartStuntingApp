@@ -161,7 +161,7 @@ class _ProfileTabState extends State<ProfileTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Pastikan Scaffold background putih
+      backgroundColor: Colors.white,
       body: RefreshIndicator(
         onRefresh: _fetchUserProfile,
         child: Column(
@@ -275,8 +275,7 @@ class _ProfileTabState extends State<ProfileTab> {
                         children: [
                           Card(
                             elevation: 5,
-                            color: Colors
-                                .white, // <--- Ditambahkan/Diubah: Pastikan Card berwarna putih
+                            color: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(15),
                             ),

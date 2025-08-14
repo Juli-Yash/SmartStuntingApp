@@ -1,5 +1,6 @@
 // lib/screens/tabs/child_data_tab.dart
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:smart_stunting_app/models/child.dart';
 import 'package:smart_stunting_app/services/child_service.dart';
 import 'package:smart_stunting_app/screens/add_child_screen.dart';
@@ -172,7 +173,7 @@ class _ChildDataTabState extends State<ChildDataTab> {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     subtitle: Text(
-                      'Lahir: ${child.birthDate.day}/${child.birthDate.month}/${child.birthDate.year} - ${child.gender}',
+                      'Lahir: ${DateFormat('dd MMMM yyyy').format(child.birthDate)} - ${child.gender}',
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,

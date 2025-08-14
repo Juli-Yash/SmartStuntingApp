@@ -63,14 +63,15 @@ class NewsDetailScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
 
+            // Perubahan di sini: Mengganti 'fullContent' menjadi 'content'
             Text(
-              news.fullContent,
+              news.content,
               style: const TextStyle(fontSize: 16, height: 1.5),
             ),
+
             if (news.url != null && news.url!.isNotEmpty) ...[
               const SizedBox(height: 20),
               Center(
-                // Untuk menengahkan tombol
                 child: ElevatedButton.icon(
                   onPressed: () => _launchUrl(news.url!, context),
                   icon: const Icon(Icons.open_in_new),

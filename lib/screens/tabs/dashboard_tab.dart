@@ -12,6 +12,7 @@ class DashboardTab extends StatelessWidget {
   final List<News> allNews;
   final Function(int) onItemTapped;
   final bool isLoadingProfile;
+  final bool isLoadingNews;
 
   const DashboardTab({
     super.key,
@@ -19,6 +20,7 @@ class DashboardTab extends StatelessWidget {
     required this.allNews,
     required this.onItemTapped,
     required this.isLoadingProfile,
+    required this.isLoadingNews,
   });
 
   Future<void> _launchUrl(String urlString, BuildContext context) async {
@@ -51,7 +53,7 @@ class DashboardTab extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w400,
-                        color: Colors.black,
+                        color: Colors.grey[600],
                       ),
                     ),
                     Text(
@@ -140,31 +142,37 @@ class DashboardTab extends StatelessWidget {
               ),
             ],
           ),
+          const Divider(height: 20, thickness: 1),
           const SizedBox(height: 15),
-          // Menampilkan maksimal 3 berita
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: allNews.length > 3 ? 3 : allNews.length,
-            itemBuilder: (context, index) {
-              final newsItem = allNews[index];
-              return NewsCard(
-                news: newsItem,
-                onTap: () {
-                  if (newsItem.url != null && newsItem.url!.isNotEmpty) {
-                    _launchUrl(newsItem.url!, context);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => NewsDetailScreen(news: newsItem),
-                      ),
+          // Tambahkan logika kondisional
+          isLoadingNews
+              ? const Center(child: CircularProgressIndicator())
+              : allNews.isEmpty
+              ? const Center(child: Text('Tidak ada berita yang ditemukan.'))
+              : ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: allNews.length > 3 ? 3 : allNews.length,
+                  itemBuilder: (context, index) {
+                    final newsItem = allNews[index];
+                    return NewsCard(
+                      news: newsItem,
+                      onTap: () {
+                        if (newsItem.url != null && newsItem.url!.isNotEmpty) {
+                          _launchUrl(newsItem.url!, context);
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  NewsDetailScreen(news: newsItem),
+                            ),
+                          );
+                        }
+                      },
                     );
-                  }
-                },
-              );
-            },
-          ),
+                  },
+                ),
           const SizedBox(height: 20),
         ],
       ),

@@ -1,10 +1,14 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:smart_stunting_app/services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_screen.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
 
@@ -63,6 +67,18 @@ class _MyAppState extends State<MyApp> {
           labelStyle: const TextStyle(color: Colors.blue),
         ),
       ),
+      // PERUBAHAN UTAMA UNTUK LOKALISASI
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
+      locale: const Locale(
+        'id',
+        'ID',
+      ), // Atur locale default ke Bahasa Indonesia
+      // AKHIR PERUBAHAN
       home: _initialScreen,
     );
   }
