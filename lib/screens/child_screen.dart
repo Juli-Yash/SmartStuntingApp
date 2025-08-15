@@ -437,17 +437,17 @@ class _ChildScreenState extends State<ChildScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     _buildPredictionStatusRow(
-                                      'Tinggi menurut Umur',
+                                      'Tinggi berdasarkan Umur',
                                       record.predictionRecord!.statusStunting,
                                     ),
                                     _buildPredictionStatusRow(
-                                      'Berat menurut Umur',
+                                      'Berat berdasarkan Umur',
                                       record
                                           .predictionRecord!
                                           .statusUnderweight,
                                     ),
                                     _buildPredictionStatusRow(
-                                      'Berat menurut Tinggi',
+                                      'Berat berdasarkan Tinggi',
                                       record.predictionRecord!.statusWasting,
                                     ),
                                   ],
@@ -493,7 +493,7 @@ class _ChildScreenState extends State<ChildScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 20.0, left: 16.0, right: 16.0),
+        padding: const EdgeInsets.only(bottom: 16.0, left: 16.0, right: 16.0),
         child: Card(
           color: Colors.blue,
           elevation: 4,
@@ -537,13 +537,6 @@ class _ChildScreenState extends State<ChildScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    'Jenis Kelamin: ${widget.child.gender}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                  ),
                   Text(
                     'Tanggal Lahir: ${DateFormat('dd MMMM yyyy').format(widget.child.birthDate)}',
                     style: TextStyle(

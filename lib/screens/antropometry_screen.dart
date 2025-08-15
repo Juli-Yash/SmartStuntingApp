@@ -371,15 +371,15 @@ class _AntropometryScreenState extends State<AntropometryScreen> {
                               ),
                               const SizedBox(height: 4),
                               _buildPredictionStatusRow(
-                                'Tinggi menurut Umur',
+                                'Tinggi berdasarkan Umur',
                                 record.predictionRecord!.statusStunting,
                               ),
                               _buildPredictionStatusRow(
-                                'Berat menurut Umur',
+                                'Berat berdasarkan Umur',
                                 record.predictionRecord!.statusUnderweight,
                               ),
                               _buildPredictionStatusRow(
-                                'Berat menurut Tinggi',
+                                'Berat berdasarkan Tinggi',
                                 record.predictionRecord!.statusWasting,
                               ),
                             ],

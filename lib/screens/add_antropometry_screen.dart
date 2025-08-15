@@ -438,19 +438,19 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                             const Divider(height: 20, thickness: 1),
                             _buildDetailRow(
                               Icons.person,
-                              'Nama Anak:',
+                              'Nama Anak',
                               _currentChild!.name,
                             ),
                             _buildDetailRow(
                               Icons.cake,
-                              'Tanggal Lahir:',
+                              'Tanggal Lahir',
                               DateFormat(
                                 'dd-MM-yyyy',
                               ).format(_currentChild!.birthDate),
                             ),
                             _buildDetailRow(
                               Icons.calendar_today,
-                              'Usia:',
+                              'Usia',
                               '$_calculatedAge Bulan',
                             ),
                           ],
@@ -669,7 +669,7 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
                                 },
                                 validator: (value) {
                                   if (value == null) {
-                                    return 'Frekuensi Pemberian Vitamin A harus dipilih.';
+                                    return 'Frekuensi Pemberian Kapsul Vitamin A harus dipilih.';
                                   }
                                   return null;
                                 },
@@ -716,25 +716,32 @@ class _AddAntropometryScreenState extends State<AddAntropometryScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(icon, color: Colors.blue.shade700, size: 24),
           const SizedBox(width: 16),
-          Text(
-            '$label',
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.black54,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

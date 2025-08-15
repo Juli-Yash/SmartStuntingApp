@@ -106,7 +106,7 @@ class _EditChildScreenState extends State<EditChildScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context, true); // Kembali dengan true menandakan sukses
+        Navigator.pop(context, true);
       }
     } catch (e) {
       if (mounted) {

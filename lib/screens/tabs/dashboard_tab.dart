@@ -6,6 +6,7 @@ import 'package:smart_stunting_app/widgets/news_card.dart';
 import 'package:smart_stunting_app/screens/news_detail_screen.dart';
 import 'package:smart_stunting_app/screens/news_list_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:smart_stunting_app/widgets/skeleton_news_card.dart'; // Impor widget skeleton
 
 class DashboardTab extends StatelessWidget {
   final User? currentUser;
@@ -144,9 +145,13 @@ class DashboardTab extends StatelessWidget {
           ),
           const Divider(height: 20, thickness: 1),
           const SizedBox(height: 15),
-          // Tambahkan logika kondisional
           isLoadingNews
-              ? const Center(child: CircularProgressIndicator())
+              ? Column(
+                  children: List.generate(
+                    3,
+                    (index) => const SkeletonNewsCard(),
+                  ),
+                )
               : allNews.isEmpty
               ? const Center(child: Text('Tidak ada berita yang ditemukan.'))
               : ListView.builder(

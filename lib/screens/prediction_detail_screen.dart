@@ -6,7 +6,7 @@ import 'package:smart_stunting_app/models/antropometry_record.dart';
 
 class PredictionDetailScreen extends StatelessWidget {
   final PredictionRecord prediction;
-  final AntropometryRecord antropometryRecord; // <--- TAMBAH properti ini
+  final AntropometryRecord antropometryRecord;
 
   const PredictionDetailScreen({
     super.key,
@@ -14,7 +14,6 @@ class PredictionDetailScreen extends StatelessWidget {
     required this.antropometryRecord,
   });
 
-  // MARK: - Helper Functions for Card Color
   Color _getCardColorBasedOnStatus(String? statusStunting) {
     if (statusStunting == null) {
       return Colors.grey.shade200;
@@ -24,8 +23,10 @@ class PredictionDetailScreen extends StatelessWidget {
       case 'stunting':
       case 'severe stunting':
         return Colors.red.shade100;
-      case 'tall':
+      case 'moderate stunting':
         return Colors.orange.shade100;
+      case 'tall':
+        return Colors.yellow.shade100;
       case 'normal':
         return Colors.green.shade100;
       default:
@@ -35,22 +36,23 @@ class PredictionDetailScreen extends StatelessWidget {
 
   Color _getBorderColorBasedOnStatus(String? statusStunting) {
     if (statusStunting == null) {
-      return Colors.grey.shade300; // Warna default
+      return Colors.grey.shade300;
     }
     final normalizedStatus = statusStunting.toLowerCase();
     switch (normalizedStatus) {
       case 'stunting':
       case 'severe stunting':
         return Colors.red.shade300;
-      case 'tall':
+      case 'moderate stunting':
         return Colors.orange.shade300;
+      case 'tall':
+        return Colors.yellow.shade300;
       case 'normal':
         return Colors.green.shade300;
       default:
         return Colors.grey.shade300;
     }
   }
-  // MARK: - End of Helper Functions
 
   @override
   Widget build(BuildContext context) {
@@ -164,15 +166,15 @@ class PredictionDetailScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 _buildPredictionStatusRow(
-                  'Tinggi menurut Umur',
+                  'Tinggi berdasarkan Umur',
                   prediction.statusStunting,
                 ),
                 _buildPredictionStatusRow(
-                  'Berat menurut Umur',
+                  'Berat berdasarkan Umur',
                   prediction.statusUnderweight,
                 ),
                 _buildPredictionStatusRow(
-                  'Berat menurut Tinggi',
+                  'Berat berdasarkan Tinggi',
                   prediction.statusWasting,
                 ),
                 const SizedBox(height: 20),
@@ -214,7 +216,7 @@ class PredictionDetailScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
             flex: 2,
@@ -245,7 +247,7 @@ Widget _buildPredictionStatusRow(String label, String? status) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8.0),
     child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center, // Ubah properti ini
       children: [
         Expanded(
           flex: 2,
@@ -260,9 +262,12 @@ Widget _buildPredictionStatusRow(String label, String? status) {
         ),
         Expanded(
           flex: 3,
-          child: Text(
-            displayStatus,
-            style: const TextStyle(fontSize: 16, color: Colors.black87),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              displayStatus,
+              style: const TextStyle(fontSize: 16, color: Colors.black87),
+            ),
           ),
         ),
       ],

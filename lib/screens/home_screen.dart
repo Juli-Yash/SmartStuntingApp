@@ -9,7 +9,7 @@ import 'package:smart_stunting_app/services/auth_service.dart';
 import 'package:smart_stunting_app/models/user.dart';
 import 'package:smart_stunting_app/screens/login_screen.dart';
 import 'package:smart_stunting_app/models/news.dart';
-import 'package:smart_stunting_app/utils/api_endpoints.dart'; // Impor file endpoints
+import 'package:smart_stunting_app/utils/api_endpoints.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
