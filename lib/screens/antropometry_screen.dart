@@ -152,22 +152,20 @@ class _AntropometryScreenState extends State<AntropometryScreen> {
     }
   }
 
-  // MARK: - Helper Functions for Card Color
   Color _getCardColorBasedOnStatus(String? statusStunting) {
     if (statusStunting == null) {
       return Colors.grey.shade200;
     }
     final normalizedStatus = statusStunting.toLowerCase();
     switch (normalizedStatus) {
-      case 'stunting':
-      case 'severe stunting':
+      case 'sangat pendek':
         return Colors.red.shade100;
-      case 'moderate stunting':
+      case 'pendek':
         return Colors.orange.shade100;
-      case 'tall':
-        return Colors.yellow.shade100;
       case 'normal':
         return Colors.green.shade100;
+      case 'tinggi':
+        return Colors.yellow.shade100;
       default:
         return Colors.grey.shade200;
     }
@@ -175,24 +173,22 @@ class _AntropometryScreenState extends State<AntropometryScreen> {
 
   Color _getBorderColorBasedOnStatus(String? statusStunting) {
     if (statusStunting == null) {
-      return Colors.grey.shade300; // Warna default
+      return Colors.grey.shade300;
     }
     final normalizedStatus = statusStunting.toLowerCase();
     switch (normalizedStatus) {
-      case 'stunting':
-      case 'severe stunting':
+      case 'sangat pendek':
         return Colors.red.shade300;
-      case 'moderate stunting':
+      case 'pendek':
         return Colors.orange.shade300;
-      case 'tall':
-        return Colors.yellow.shade300;
       case 'normal':
         return Colors.green.shade300;
+      case 'tinggi':
+        return Colors.yellow.shade300;
       default:
         return Colors.grey.shade300;
     }
   }
-  // MARK: - End of Helper Functions
 
   @override
   Widget build(BuildContext context) {

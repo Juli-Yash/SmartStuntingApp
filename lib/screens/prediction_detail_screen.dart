@@ -20,15 +20,14 @@ class PredictionDetailScreen extends StatelessWidget {
     }
     final normalizedStatus = statusStunting.toLowerCase();
     switch (normalizedStatus) {
-      case 'stunting':
-      case 'severe stunting':
+      case 'sangat pendek':
         return Colors.red.shade100;
-      case 'moderate stunting':
+      case 'pendek':
         return Colors.orange.shade100;
-      case 'tall':
-        return Colors.yellow.shade100;
       case 'normal':
         return Colors.green.shade100;
+      case 'tinggi':
+        return Colors.yellow.shade100;
       default:
         return Colors.grey.shade200;
     }
@@ -40,15 +39,14 @@ class PredictionDetailScreen extends StatelessWidget {
     }
     final normalizedStatus = statusStunting.toLowerCase();
     switch (normalizedStatus) {
-      case 'stunting':
-      case 'severe stunting':
+      case 'sangat pendek':
         return Colors.red.shade300;
-      case 'moderate stunting':
+      case 'pendek':
         return Colors.orange.shade300;
-      case 'tall':
-        return Colors.yellow.shade300;
       case 'normal':
         return Colors.green.shade300;
+      case 'tinggi':
+        return Colors.yellow.shade300;
       default:
         return Colors.grey.shade300;
     }
@@ -247,7 +245,7 @@ Widget _buildPredictionStatusRow(String label, String? status) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 8.0),
     child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center, // Ubah properti ini
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
           flex: 2,
