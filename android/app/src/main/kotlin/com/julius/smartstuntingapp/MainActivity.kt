@@ -1,4 +1,4 @@
-package com.example.smart_stunting_app
+package com.julius.smartstuntingapp
 
 import io.flutter.embedding.android.FlutterActivity
 

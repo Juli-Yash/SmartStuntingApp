@@ -1,59 +1,86 @@
-# Miscellaneous
+# ===================================================================
+# Bagian Keamanan (SANGAT PENTING!)
+# Jangan pernah unggah file-file ini ke repository publik.
+# ===================================================================
+
+# Kredensial penandatanganan (signing) Android
+/android/key.properties
+*.jks
+
+# File konfigurasi Firebase (berisi kunci API dan ID proyek)
+# Direkomendasikan untuk diabaikan di proyek publik.
+# Tambahkan secara manual setelah clone.
+/android/app/google-services.json
+/ios/Runner/GoogleService-Info.plist
+
+# File environment untuk menyimpan API key, dll.
+.env*
+secrets.json
+
+# Konfigurasi Firebase CLI
+.firebaserc
+
+# ===================================================================
+# Flutter, Dart, dan Pub
+# ===================================================================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+/doc/api/
+/ios/Flutter/.last_build_id
+app.*.symbols
+app.*.map.json
+
+# ===================================================================
+# File Build Artefak Spesifik Platform
+# ===================================================================
+/android/.gradle
+/android/app/build/
+/ios/.symlinks/
+/ios/Pods/
+/ios/Flutter/App.framework
+/ios/Flutter/engine.xcconfig
+/ios/Flutter/flutter_export_environment.sh
+
+# ===================================================================
+# Konfigurasi IDE & Editor
+# ===================================================================
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Konfigurasi VS Code bersifat personal, bisa diabaikan.
+# Hapus tanda pagar '#' jika Anda ingin mengunggahnya.
+#.vscode/
+
+# ===================================================================
+# File Umum & Sistem Operasi
+# ===================================================================
 *.class
 *.log
 *.pyc
 *.swp
 .DS_Store
 .atom/
-.build/
 .buildlog/
 .history
 .svn/
 .swiftpm/
 migrate_working_dir/
+Thumbs.db
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
-.dart_tool/
-.flutter-plugins
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-
-# Symbolication related
-app.*.symbols
-
-# Obfuscation related
-app.*.map.json
-
-# Android Studio will place build artifacts here
-/android/app/build/
-/android/app/debug
-/android/app/profile
-/android/app/release
-
-# Additional files and directories to ignore for Flutter projects.
-# This helps with large files and temporary artifacts.
-/android/.gradle/
-/android/local.properties
-/android/gradlew
-/android/gradlew.bat
-
-# iOS specific
-/ios/.symlinks
-/ios/Flutter/Generated.xcconfig
-/ios/Flutter/podhelper.rb
-/ios/Pods
+# ===================================================================
+# File yang TIDAK SEHARUSNYA di-ignore (Best Practice)
+# ===================================================================
+# Hapus baris berikut dari .gitignore Anda jika ada:
+# /android/gradlew
+# /android/gradlew.bat
+# /android/gradle/
+# /ios/Podfile
+# /ios/Podfile.lock
+# File-file ini memastikan konsistensi build di berbagai lingkungan.

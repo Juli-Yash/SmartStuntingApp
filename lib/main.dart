@@ -74,11 +74,7 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('id', 'ID'), Locale('en', 'US')],
-      locale: const Locale(
-        'id',
-        'ID',
-      ), // Atur locale default ke Bahasa Indonesia
-      // AKHIR PERUBAHAN
+      locale: const Locale('id', 'ID'),
       home: _initialScreen,
     );
   }

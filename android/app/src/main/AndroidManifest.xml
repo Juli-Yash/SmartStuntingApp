@@ -15,7 +15,6 @@
 
     <application
         android:label="Smart Stunting"
-        android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true"> <activity
             android:name=".MainActivity"

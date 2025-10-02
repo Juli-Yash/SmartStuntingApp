@@ -1,6 +1,6 @@
 // lib/models/prediction_record.dart
-import 'package:smart_stunting_app/models/child.dart'; // Untuk relasi Child
-import 'package:smart_stunting_app/models/antropometry_record.dart'; // Untuk relasi AntropometryRecord
+import 'package:smart_stunting_app/models/child.dart';
+import 'package:smart_stunting_app/models/antropometry_record.dart';
 
 class PredictionRecord {
   final int? id;
@@ -12,8 +12,6 @@ class PredictionRecord {
   final String recommendation;
   final DateTime? createdAt;
   final DateTime? updatedAt;
-
-  // Relasi (jika API mengembalikan ini)
   final Child? anak;
   final AntropometryRecord? antropometryRecord;
 
@@ -48,7 +46,6 @@ class PredictionRecord {
           : null,
     );
   }
-
   Map<String, dynamic> toJson() {
     return {
       'anak_id': anakId,

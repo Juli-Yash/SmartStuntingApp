@@ -19,7 +19,7 @@ if (keystorePropertiesFile.exists()) {
 // END_FLUTTER_SIGNING_CONFIG
 
 android {
-    namespace = "com.example.smart_stunting_app"
+    namespace = "com.julius.smartstuntingapp"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "29.0.13599879"
 
@@ -34,7 +34,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.smart_stunting_app"
+        applicationId = "com.julius.smartstuntingapp"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
